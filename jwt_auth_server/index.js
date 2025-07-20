@@ -4,20 +4,18 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const users = require("./data/users");
+require("dotenv").config();
 
 const app = express();
-const PORT = 3001;
-const SECRET = "mysecretkey123"; // Keep this secret and use env file later
-
+const PORT = process.env.PORT;
+const secret = process.env.SECRET;
 app.use(cors());
 app.use(express.json());
 
-// 🏠 Home route
 app.get("/", (req, res) => {
   res.json({ message: "Backend is working!" });
 });
 
-// 📝 Signup route
 app.post("/signup", async (req, res) => {
   const { username, password } = req.body;
   const existingUser = users.find((u) => u.username === username);
@@ -39,7 +37,7 @@ app.post("/login", async (req, res) => {
   if (!isPasswordMatch)
     return res.status(400).json({ message: "Invalid credentials" });
 
-  const token = jwt.sign({ username }, SECRET, { expiresIn: "1h" });
+  const token = jwt.sign({ username }, secret, { expiresIn: "1h" });
   res.json({ token });
 });
 
@@ -52,7 +50,7 @@ app.get("/protected", (req, res) => {
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, SECRET);
+    const decoded = jwt.verify(token, secret);
     res.json({ message: `Hello ${decoded.username}, this is protected data.` });
   } catch (err) {
     res.status(401).json({ message: "Invalid token" });
